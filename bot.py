@@ -20,8 +20,11 @@ def global_emoji() -> typing.Dict[str, str]:
 
 
 def normalize_emoji_name(name: str):
+    name = name.lower()
     if "face" in name:
         return name.split()[0]
+    if name.startswith("flag:"):
+        return name.split()[1]
     return name
 
 
@@ -30,6 +33,10 @@ def main():
     token_file = SECRETS_DIR / "token.txt"
     id_file = SECRETS_DIR / "client_id.txt"
     Bot(id_file.read_text()).run(token_file.read_text())
+
+
+def normalize_word(word: str):
+    return word.lower().replace('"', "")
 
 
 class Bot(discord.Client):
@@ -41,15 +48,14 @@ class Bot(discord.Client):
         return global_emoji()
 
     async def on_message(self, message: discord.Message):
-        print(self.user.display_name)
         if message.author == self.user:
             return
-        words = set(message.content.split())
+        words = set(normalize_word(word) for word in message.content.split())
         relevant_emoji = (
             emoji for name, emoji in self.avalible_emoji().items() if name in words
         )
         reactions = [message.add_reaction(emoji) for emoji in relevant_emoji]
-        await asyncio.gather(*reactions)
+        return await asyncio.gather(*reactions)
 
     async def on_ready(self):
         client_id = SECRETS_DIR / "client_id.txt"
