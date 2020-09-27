@@ -1,15 +1,15 @@
-import random
+import csv
+import functools
 import typing
 from pathlib import Path
+import asyncio
 
-import csv
 import discord
 
 FILE_DIR = Path(__file__).resolve().parent
 SECRETS_DIR = FILE_DIR / "secrets"
 
 Emoji = typing.Union[discord.Emoji, str]
-import functools
 
 
 @functools.lru_cache
@@ -37,7 +37,7 @@ class Bot(discord.Client):
         self.client_id = client_id
         super().__init__(**kwargs)
 
-    def avalible_emoji(self) -> typing.Dict[str, typing.List[Emoji]]:
+    def avalible_emoji(self) -> typing.Dict[str, Emoji]:
         return global_emoji()
 
     async def on_message(self, message: discord.Message):
@@ -45,10 +45,11 @@ class Bot(discord.Client):
         if message.author == self.user:
             return
         words = set(message.content.split())
-        for emoji in (
+        relevant_emoji = (
             emoji for name, emoji in self.avalible_emoji().items() if name in words
-        ):
-            await message.add_reaction(emoji)
+        )
+        reactions = [message.add_reaction(emoji) for emoji in relevant_emoji]
+        await asyncio.gather(*reactions)
 
     async def on_ready(self):
         client_id = SECRETS_DIR / "client_id.txt"
