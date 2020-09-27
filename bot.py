@@ -22,6 +22,7 @@ def global_emoji() -> typing.Dict[str, str]:
 def normalize_emoji_name(name: str):
     if "face" in name:
         return name.split()[0]
+    return name
 
 
 def main():
