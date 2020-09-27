@@ -2,10 +2,26 @@ import random
 import typing
 from pathlib import Path
 
+import csv
 import discord
 
 FILE_DIR = Path(__file__).resolve().parent
 SECRETS_DIR = FILE_DIR / "secrets"
+
+Emoji = typing.Union[discord.Emoji, str]
+import functools
+
+
+@functools.lru_cache
+def global_emoji() -> typing.Dict[str, str]:
+    with open(FILE_DIR / "emoji.csv") as emoji_file:
+        emoji_reader = csv.DictReader(emoji_file)
+        return {normalize_emoji_name(row["name"]): row["emoji"] for row in emoji_reader}
+
+
+def normalize_emoji_name(name: str):
+    if "face" in name:
+        return name.split()[0]
 
 
 def main():
@@ -20,18 +36,16 @@ class Bot(discord.Client):
         self.client_id = client_id
         super().__init__(**kwargs)
 
-    def avalible_emoji(self) -> typing.Dict[str, typing.List[discord.Emoji]]:
-        return {"guitar": "🎸"}
+    def avalible_emoji(self) -> typing.Dict[str, typing.List[Emoji]]:
+        return global_emoji()
 
     async def on_message(self, message: discord.Message):
         print(self.user.display_name)
         if message.author == self.user:
             return
         words = set(message.content.split())
-        for _, emoji in (
-            (name, emoji)
-            for name, emoji in self.avalible_emoji().items()
-            if name in words
+        for emoji in (
+            emoji for name, emoji in self.avalible_emoji().items() if name in words
         ):
             await message.add_reaction(emoji)
 
