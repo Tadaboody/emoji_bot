@@ -1,10 +1,13 @@
+import asyncio
 import csv
 import functools
+import logging
 import typing
 from pathlib import Path
-import asyncio
 
 import discord
+
+logging.basicConfig(level=logging.INFO, filename="emoji_bot.log")
 
 FILE_DIR = Path(__file__).resolve().parent
 SECRETS_DIR = FILE_DIR / "secrets"
@@ -21,22 +24,20 @@ def global_emoji() -> typing.Dict[str, str]:
 
 def normalize_emoji_name(name: str):
     name = name.lower()
-    if "face" in name:
-        return name.split()[0]
     if name.startswith("flag:"):
         return name.split()[1]
-    return name
+    return name.split()[0]
 
 
 def main():
-    print("Reloading...")
+    logging.info("Reloading...")
     token_file = SECRETS_DIR / "token.txt"
     id_file = SECRETS_DIR / "client_id.txt"
     Bot(id_file.read_text()).run(token_file.read_text())
 
 
 def normalize_word(word: str):
-    return word.lower().replace('"', "")
+    return word.lower().replace('"', "").replace(":", "")
 
 
 class Bot(discord.Client):
@@ -45,7 +46,12 @@ class Bot(discord.Client):
         super().__init__(**kwargs)
 
     def avalible_emoji(self) -> typing.Dict[str, Emoji]:
-        return global_emoji()
+        all_emoji = global_emoji()
+        guild_emoji = {
+            emoji.name.lower(): emoji for guild in self.guilds for emoji in guild.emojis
+        }
+        all_emoji.update(guild_emoji)
+        return all_emoji
 
     async def on_message(self, message: discord.Message):
         if message.author == self.user:
