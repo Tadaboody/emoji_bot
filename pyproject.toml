@@ -11,6 +11,9 @@ python = "^3.5.3"
 
 [tool.poetry.dev-dependencies]
 
+[tool.poetry.scripts]
+emoji_bot = 'emoji_bot:main'
+
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
