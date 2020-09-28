@@ -2,9 +2,9 @@
 ## Reacts to discord messages with relevant emoji 🎸
 
 ### Running
-Make sure to register a bot and create `token.txt` and `client_id.txt` inside `emoji_bot/secrets`.  
 
 ```sh
+EMOJI_BOT_ID=<client id> && EMOJI_BOT_TOKEN=<authentication token>
 pip install .
 python -m emoji_bot
 ```

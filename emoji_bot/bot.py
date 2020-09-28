@@ -3,6 +3,7 @@ import csv
 import functools
 import logging
 import typing
+from os import environ
 from pathlib import Path
 
 import discord
@@ -10,7 +11,6 @@ import discord
 logging.basicConfig(level=logging.INFO, filename="emoji_bot.log")
 
 FILE_DIR = Path(__file__).resolve().parent
-SECRETS_DIR = FILE_DIR / "secrets"
 
 Emoji = typing.Union[discord.Emoji, str]
 
@@ -31,9 +31,7 @@ def normalize_emoji_name(name: str):
 
 def main():
     logging.info("Reloading...")
-    token_file = SECRETS_DIR / "token.txt"
-    id_file = SECRETS_DIR / "client_id.txt"
-    Bot(id_file.read_text()).run(token_file.read_text())
+    Bot(environ["EMOJI_BOT_ID"]).run(environ["EMOJI_BOT_TOKEN"])
 
 
 def normalize_word(word: str):
@@ -70,9 +68,8 @@ class Bot(discord.Client):
         return await asyncio.gather(*reactions)
 
     async def on_ready(self):
-        client_id = SECRETS_DIR / "client_id.txt"
         permissions = 2048
-        invite_link = f"https://discordapp.com/oauth2/authorize?&client_id={client_id.read_text()}&scope=bot&permissions={permissions}"
+        invite_link = f"https://discordapp.com/oauth2/authorize?&client_id={self.client_id}&scope=bot&permissions={permissions}"
         logging.info(f"Bot running! Invite me at {invite_link}")
         print(f"Bot running! Invite me at {invite_link}")
 
