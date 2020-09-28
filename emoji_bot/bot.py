@@ -37,7 +37,11 @@ def main():
 
 
 def normalize_word(word: str):
-    return word.lower().replace('"', "").replace(":", "")
+    return word.lower().strip('"!?.')
+
+
+def remove_prefix(name: str) -> str:
+    return name.split("_")[-1].split("-")[-1]
 
 
 class Bot(discord.Client):
@@ -48,7 +52,9 @@ class Bot(discord.Client):
     def avalible_emoji(self) -> typing.Dict[str, Emoji]:
         all_emoji = global_emoji()
         guild_emoji = {
-            emoji.name.lower(): emoji for guild in self.guilds for emoji in guild.emojis
+            remove_prefix(emoji.name.lower()): emoji
+            for guild in self.guilds
+            for emoji in guild.emojis
         }
         all_emoji.update(guild_emoji)
         return all_emoji
@@ -67,6 +73,7 @@ class Bot(discord.Client):
         client_id = SECRETS_DIR / "client_id.txt"
         permissions = 2048
         invite_link = f"https://discordapp.com/oauth2/authorize?&client_id={client_id.read_text()}&scope=bot&permissions={permissions}"
+        logging.info(f"Bot running! Invite me at {invite_link}")
         print(f"Bot running! Invite me at {invite_link}")
 
 
